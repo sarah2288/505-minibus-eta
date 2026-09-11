@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>505 小巴到站時間</title>
+  <title>醫院交通到站時間</title>
   <style>
     :root {
       color-scheme: light;
@@ -14,15 +14,15 @@
       --border: #d8dfd6;
       --green: #16833a;
       --green-dark: #0f5f2a;
+      --blue: #2264a8;
+      --blue-dark: #16497b;
       --amber: #f3a712;
       --red: #c93a2f;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
         "Noto Sans TC", "Microsoft JhengHei", sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -65,8 +65,11 @@
       white-space: nowrap;
     }
 
-    .refresh:active {
-      background: var(--green-dark);
+    .refresh:active { background: var(--green-dark); }
+
+    .refresh:disabled {
+      cursor: wait;
+      opacity: 0.7;
     }
 
     .meta {
@@ -74,6 +77,16 @@
       color: var(--muted);
       font-size: 18px;
       line-height: 1.45;
+    }
+
+    .journey { margin-top: 22px; }
+    .journey:first-of-type { margin-top: 0; }
+
+    .journey h2 {
+      margin: 0 0 12px;
+      font-size: clamp(24px, 4vw, 34px);
+      line-height: 1.15;
+      letter-spacing: 0;
     }
 
     .routes {
@@ -90,9 +103,11 @@
       box-shadow: 0 8px 24px rgba(28, 45, 34, 0.08);
     }
 
-    .route h2 {
+    .route.bus { border-left-color: var(--blue); }
+
+    .route h3 {
       margin: 0 0 8px;
-      font-size: clamp(24px, 4.4vw, 36px);
+      font-size: clamp(23px, 4vw, 34px);
       line-height: 1.18;
       letter-spacing: 0;
     }
@@ -131,19 +146,15 @@
       letter-spacing: 0;
     }
 
+    .route.bus .eta strong { color: var(--blue-dark); }
     .eta span {
       margin-top: 8px;
       font-size: 19px;
       color: var(--muted);
     }
 
-    .eta.now strong {
-      color: var(--red);
-    }
-
-    .eta.scheduled strong {
-      color: #87600b;
-    }
+    .eta.now strong { color: var(--red); }
+    .eta.scheduled strong { color: #87600b; }
 
     .notice {
       min-height: 28px;
@@ -166,81 +177,110 @@
     }
 
     @media (max-width: 680px) {
-      main {
-        padding: 18px 12px 24px;
-      }
-
+      main { padding: 18px 12px 24px; }
       header {
         align-items: stretch;
         flex-direction: column;
       }
-
       .refresh {
         width: 100%;
         font-size: 20px;
         padding: 14px 16px;
       }
-
-      .route {
-        padding: 16px;
-      }
-
+      .route { padding: 16px; }
       .eta-list {
         grid-template-columns: 1fr;
         min-height: 0;
       }
-
-      .eta {
-        min-height: 104px;
-      }
+      .eta { min-height: 104px; }
     }
   </style>
 </head>
 <body>
   <main>
     <header>
-      <h1>505 小巴到站時間</h1>
+      <h1>醫院交通到站時間</h1>
       <button class="refresh" type="button" id="refreshButton">立即更新</button>
     </header>
 
     <p class="meta" id="status">正在讀取最新到站時間...</p>
 
-    <section class="routes" aria-live="polite">
-      <article class="route" data-route-key="toHospital">
-        <h2>去威爾斯親王醫院</h2>
-        <p class="from">上車站：和滿街小巴總站 / 聯和墟方向</p>
-        <div class="eta-list" id="toHospital"></div>
-        <p class="notice" id="toHospitalNotice"></p>
-      </article>
+    <section class="journey" aria-labelledby="outboundTitle">
+      <h2 id="outboundTitle">去程</h2>
+      <div class="routes" aria-live="polite">
+        <article class="route" data-route-key="toPwh505">
+          <h3>505 小巴：去威爾斯親王醫院</h3>
+          <p class="from">上車站：和滿街小巴總站 / 聯和墟方向</p>
+          <div class="eta-list" id="toPwh505"></div>
+          <p class="notice" id="toPwh505Notice"></p>
+        </article>
 
-      <article class="route" data-route-key="toLuenWo">
-        <h2>去聯和墟 / 上水</h2>
-        <p class="from">上車站：插桅杆街，近威爾斯親王醫院急症室</p>
-        <div class="eta-list" id="toLuenWo"></div>
-        <p class="notice" id="toLuenWoNotice"></p>
-      </article>
+        <article class="route bus" data-route-key="toShatinHospital84m">
+          <h3>84M 九巴：威院去沙田醫院</h3>
+          <p class="from">上車站：威爾斯親王醫院（ST860）</p>
+          <div class="eta-list" id="toShatinHospital84m"></div>
+          <p class="notice" id="toShatinHospital84mNotice"></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="journey" aria-labelledby="returnTitle">
+      <h2 id="returnTitle">回程</h2>
+      <div class="routes" aria-live="polite">
+        <article class="route bus" data-route-key="toPwh84m">
+          <h3>84M 九巴：沙田醫院去威院</h3>
+          <p class="from">上車站：沙田醫院（MA403）</p>
+          <div class="eta-list" id="toPwh84m"></div>
+          <p class="notice" id="toPwh84mNotice"></p>
+        </article>
+
+        <article class="route" data-route-key="toLuenWo505">
+          <h3>505 小巴：去聯和墟 / 上水</h3>
+          <p class="from">上車站：插桅杆街，近威爾斯親王醫院急症室</p>
+          <div class="eta-list" id="toLuenWo505"></div>
+          <p class="notice" id="toLuenWo505Notice"></p>
+        </article>
+      </div>
     </section>
 
     <footer>
-      資料來源：香港政府資料一線通 / 運輸署公共小巴即時到站資料。頁面每 30 秒自動更新一次。
+      資料來源：香港政府資料一線通 / 運輸署公共小巴及九巴即時到站資料。頁面每 30 秒自動更新一次。
     </footer>
   </main>
 
   <script>
     const ROUTES = {
-      toHospital: {
+      toPwh505: {
+        provider: "gmb",
         routeId: 2009147,
         routeSeq: 1,
         stopSeq: 5,
-        targetId: "toHospital",
-        noticeId: "toHospitalNotice"
+        targetId: "toPwh505",
+        noticeId: "toPwh505Notice"
       },
-      toLuenWo: {
+      toShatinHospital84m: {
+        provider: "kmb",
+        route: "84M",
+        stopId: "24E16716BBB7F2D0",
+        serviceType: 3,
+        targetId: "toShatinHospital84m",
+        noticeId: "toShatinHospital84mNotice"
+      },
+      toPwh84m: {
+        provider: "kmb",
+        route: "84M",
+        stopId: "A78292AA77A277A7",
+        serviceType: 1,
+        targetId: "toPwh84m",
+        noticeId: "toPwh84mNotice"
+      },
+      toLuenWo505: {
+        provider: "gmb",
         routeId: 2009147,
         routeSeq: 2,
         stopSeq: 3,
-        targetId: "toLuenWo",
-        noticeId: "toLuenWoNotice"
+        targetId: "toLuenWo505",
+        noticeId: "toLuenWo505Notice"
       }
     };
 
@@ -250,13 +290,39 @@
     let nextRefreshAt = 0;
     let isRefreshing = false;
 
-    function endpoint({ routeId, routeSeq, stopSeq }) {
+    function gmbEndpoint({ routeId, routeSeq, stopSeq }) {
       return `https://data.etagmb.gov.hk/eta/route-stop/${routeId}/${routeSeq}/${stopSeq}`;
+    }
+
+    function kmbEndpoint({ stopId, route, serviceType }) {
+      return `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopId}/${route}/${serviceType}`;
+    }
+
+    function minutesUntil(timestamp) {
+      if (!timestamp) return null;
+      const diff = Math.ceil((new Date(timestamp).getTime() - Date.now()) / 60000);
+      return Math.max(0, diff);
+    }
+
+    function normalizeGmbEta(item) {
+      return {
+        diff: item.diff,
+        timestamp: item.timestamp,
+        remark: item.remarks_tc || ""
+      };
+    }
+
+    function normalizeKmbEta(item) {
+      return {
+        diff: minutesUntil(item.eta),
+        timestamp: item.eta,
+        remark: item.rmk_tc || ""
+      };
     }
 
     function formatEta(item) {
       const isNow = item.diff <= 0;
-      const remark = item.remarks_tc ? `（${item.remarks_tc}）` : "";
+      const remark = item.remark ? `（${item.remark}）` : "";
       return {
         label: isNow ? "即將到站" : `${item.diff} 分鐘`,
         subLabel: item.timestamp
@@ -265,14 +331,17 @@
               minute: "2-digit"
             }) + remark
           : remark,
-        className: `${isNow ? "now" : ""} ${item.remarks_tc ? "scheduled" : ""}`.trim()
+        className: `${isNow ? "now" : ""} ${item.remark ? "scheduled" : ""}`.trim()
       };
     }
 
     function renderEtas(config, etaItems) {
       const container = document.querySelector(`#${config.targetId}`);
       const notice = document.querySelector(`#${config.noticeId}`);
-      const items = etaItems.slice(0, 3);
+      const items = etaItems
+        .filter((item) => item.timestamp)
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+        .slice(0, 3);
 
       container.innerHTML = "";
       notice.textContent = "";
@@ -294,15 +363,21 @@
     }
 
     async function loadRoute(config) {
-      const response = await fetch(endpoint(config), { cache: "no-store" });
+      const endpoint = config.provider === "kmb" ? kmbEndpoint(config) : gmbEndpoint(config);
+      const response = await fetch(endpoint, { cache: "no-store" });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       const payload = await response.json();
+
+      if (config.provider === "kmb") {
+        return (payload.data || []).map(normalizeKmbEta);
+      }
+
       if (!payload.data || payload.data.enabled === false) {
         return [];
       }
-      return payload.data.eta || [];
+      return (payload.data.eta || []).map(normalizeGmbEta);
     }
 
     function updateStatus(message) {
@@ -321,13 +396,12 @@
       status.textContent = "正在讀取最新到站時間...";
 
       try {
-        const [toHospital, toLuenWo] = await Promise.all([
-          loadRoute(ROUTES.toHospital),
-          loadRoute(ROUTES.toLuenWo)
-        ]);
-
-        renderEtas(ROUTES.toHospital, toHospital);
-        renderEtas(ROUTES.toLuenWo, toLuenWo);
+        await Promise.all(
+          Object.values(ROUTES).map(async (route) => {
+            const etaItems = await loadRoute(route);
+            renderEtas(route, etaItems);
+          })
+        );
 
         const now = new Date().toLocaleTimeString("zh-HK", {
           hour: "2-digit",
